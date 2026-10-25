@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from datetime import datetime
 import os
 
@@ -131,6 +131,58 @@ def index():
 @app.route("/api/schedule")
 def schedule():
     return jsonify(events_data)
+
+def generate_plan():
+    """
+    Generate an event plan based on user input.
+    Expected JSON payload:
+        {
+            "event_ids": ["T1", "T3"],   // optional, defaults to all events
+            "budget": 5000,              // optional, used for simple suggestion
+            "attendees": 50              // optional, used for venue size hint
+        }
+    Returns a JSON object with a textual plan and summary metadata.
+    """
+    data = request.get_json(silent=True) or {}
+    selected_ids = data.get("event_ids")
+    budget = data.get("budget")
+    attendees = data.get("attendees")
+
+    # Filter events
+    if selected_ids:
+        selected = [e for e in events_data if e["id"] in selected_ids]
+    else:
+        selected = events_data
+
+    # Build simple textual plan
+    plan_lines = []
+    total_time = 0
+    for ev in selected:
+        plan_lines.append(f"{ev['time']}: {ev['title']} ({ev['type']})")
+        try:
+            start, end = ev["time"].split(" - ")
+            h1, m1 = map(int, start.split(":"))
+            h2, m2 = map(int, end.split(":"))
+            total_time += (h2 - h1) + (m2 - m1) / 60
+        except Exception:
+            pass
+
+    plan_text = "\n".join(plan_lines)
+    summary = {
+        "total_events": len(selected),
+        "estimated_hours": round(total_time, 2)
+    }
+    if budget:
+        summary["budget_suggestion"] = f"Allocate ~${budget/len(selected):.2f} per event."
+    if attendees:
+        summary["venue_hint"] = f"Suitable for {attendees} participants."
+
+    return jsonify({"plan": plan_text, "summary": summary})
+
+@app.route("/api/generate_plan", methods=["POST"])
+def api_generate_plan():
+    """Endpoint that wraps generate_plan."""
+    return generate_plan()
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
