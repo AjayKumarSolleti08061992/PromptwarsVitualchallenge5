@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GenAI Event Planner</title>
+    <meta name="description" content="AI‑powered assistant to plan weddings, birthdays, and community events with budgets, timelines, vendor checklists, and personalized ideas." />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Google Font for premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+    <header class="hero">
+        <h1>✨ GenAI Event Planner</h1>
+        <p>Plan your wedding, birthday, or community gathering with budgets, timelines, vendor checklists, and AI‑crafted ideas.</p>
+    </header>
+    <main class="container">
+        <section class="card">
+            <h2>Event Details</h2>
+            <form id="planForm">
+                <label for="eventType">Event Type</label>
+                <select id="eventType" required>
+                    <option value="wedding">Wedding</option>
+                    <option value="birthday">Birthday</option>
+                    <option value="community">Community Event</option>
+                </select>
+
+                <label for="eventDate">Date</label>
+                <input type="date" id="eventDate" required />
+
+                <label for="budget">Budget (USD)</label>
+                <input type="number" id="budget" min="0" placeholder="e.g., 15000" required />
+
+                <button type="submit" class="primary-btn">Generate Plan</button>
+            </form>
+        </section>
+
+        <section class="card" id="outputSection" style="display:none;">
+            <h2>AI‑Generated Plan</h2>
+            <div id="planOutput" class="output"></div>
+        </section>
+    </main>
+    <footer>
+        <p>Powered by <a href="https://github.com/google/gemma.cpp" target="_blank" rel="noopener">Gemma</a> (open‑source) • © 2026 EventPlanner</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>

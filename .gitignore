@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+ENV/
+env/
+
+# Environment secrets
+.env
+api/.env
+*.env
+.env.local
+.env.*.local
+
+# Cloudflare & Node
+node_modules/
+.wrangler/
+dist/
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

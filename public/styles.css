@@ -1,0 +1,171 @@
+/*
+ * styles.css – Premium UI for GenAI Event Planner
+ * Designed with modern aesthetics: gradient backdrop, glassmorphism cards,
+ * smooth micro‑animations and responsive layout.
+ *
+ * Colors are derived from a harmonious HSL palette.
+ */
+
+:root {
+    --primary-hue: 210; /* cool blue */
+    --primary-sat: 80%;
+    --primary-light: 55%;
+    --accent-hue: 340; /* vibrant pink */
+    --accent-sat: 70%;
+    --accent-light: 60%;
+    --bg-gradient: linear-gradient(135deg, hsl(210, 80%, 30%), hsl(340, 70%, 40%));
+    --card-bg: rgba(255, 255, 255, 0.15);
+    --card-blur: 12px;
+    --text-primary: #fff;
+    --text-secondary: #e0e0e0;
+    --font-family: 'Inter', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+}
+
+header.hero {
+    text-align: center;
+    padding: 4rem 1rem;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+header.hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: 0.5rem;
+}
+
+header.hero p {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+}
+
+.container {
+    flex: 1;
+    width: min(90%, 1200px);
+    margin: 0 auto;
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    padding-bottom: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--card-blur));
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.6s ease-out;
+}
+
+.card h2 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.25);
+    color: var(--text-primary);
+    font-size: 1rem;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s ease;
+}
+
+input::placeholder,
+select option {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+input:focus,
+select:focus {
+    outline: 2px solid hsl(var(--primary-hue), var(--primary-sat), var(--primary-light));
+    background: rgba(255, 255, 255, 0.35);
+}
+
+button.primary-btn {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: hsl(var(--accent-hue), var(--accent-sat), var(--accent-light));
+    border: none;
+    border-radius: 0.5rem;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+button.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+button.primary-btn:active {
+    transform: translateY(0);
+}
+
+.output {
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-family: monospace;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+footer a {
+    color: hsl(var(--accent-hue), var(--accent-sat), var(--accent-light));
+    text-decoration: underline;
+}
+
+/* Micro‑animations */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+    header.hero { padding: 2rem 0.5rem; }
+    .card { padding: 1.5rem; }
+}
