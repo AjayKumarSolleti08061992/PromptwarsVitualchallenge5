@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ info.name }}</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="description" content="Join us for a 1-day immersive technical conference on Google Cloud Technologies.">
+</head>
+<body>
+    <!-- Header / Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1 class="gradient-text">{{ info.name }}</h1>
+            <p class="subtitle">1-Day Technical Conference on Google Cloud Technologies</p>
+            <div class="event-details">
+                <span class="detail-item"><i class="icon">📅</i> <span id="event-date">{{ info.date }}</span></span>
+                <span class="detail-item"><i class="icon">📍</i> <span id="event-location">{{ info.location }}</span></span>
+            </div>
+        </div>
+        <div class="hero-background"></div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Search and Filter Section -->
+        <section class="controls-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by title or speaker...">
+            </div>
+            <div class="filter-box">
+                <select id="categoryFilter">
+                    <option value="all">All Categories</option>
+                    <option value="1">Infrastructure & Compute</option>
+                    <option value="2">Data & AI</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section class="schedule-section">
+            <h2>Agenda & Timetable</h2>
+            <div id="scheduleContainer" class="schedule-container">
+                <!-- Data will be populated via JS -->
+            </div>
+            
+            <!-- Fallback message -->
+            <div id="noResults" class="no-results hidden">
+                <p>No talks found matching your criteria.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Google Cloud Event. All rights reserved.</p>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
