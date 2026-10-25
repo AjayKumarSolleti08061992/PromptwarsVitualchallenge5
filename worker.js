@@ -10,7 +10,7 @@ const CORS_HEADERS = {
 };
 
 /**
- * Fallback event plan generator if external API is unreachable or key is not configured.
+ * High-speed fallback event plan generator if external API is unreachable or key is not configured.
  */
 function generateFallbackPlan(eventType, date, budget) {
   const dateStr = date ? `on ${date}` : "in the upcoming months";
@@ -27,16 +27,16 @@ function generateFallbackPlan(eventType, date, budget) {
 ---
 
 ### ⏱️ Timeline & Milestones
-- **8 Weeks Prior:** Finalize theme, book primary venue, and send save-the-dates.
+- **8 Weeks Prior:** Finalize event theme, book primary venue, and send save-the-dates.
 - **4 Weeks Prior:** Confirm catering menu, finalize vendor contracts (photography, music/AV).
-- **1 Week Prior:** Final headcount check, brief vendors on logistics and arrival times.
-- **Event Day:** On-site setup 3 hours before start; run technical soundcheck; welcome guests.
-- **Post-Event:** Send thank-you notes, settle vendor payments, gather photos.
+- **1 Week Prior:** Final headcount check, brief vendors on logistics and arrival schedule.
+- **Event Day:** On-site setup 3 hours prior; run AV soundcheck; welcome attendees.
+- **Post-Event:** Send thank-you notes, reconcile vendor invoices, distribute photos.
 
 ---
 
 ### 💰 Budget Allocation Breakdown
-- **Venue & Rentals (40%):** $${venueBudget}
+- **Venue & Space Rentals (40%):** $${venueBudget}
 - **Catering & Refreshments (30%):** $${cateringBudget}
 - **Decor, Lighting & Ambiance (15%):** $${decorBudget}
 - **Contingency & Photography (15%):** $${bufferBudget}
@@ -45,16 +45,16 @@ function generateFallbackPlan(eventType, date, budget) {
 
 ### 💡 Creative & Personalized Ideas
 - **Interactive Experience:** Set up a live digital guestbook or Polaroid memory corner.
-- **Customized Welcome:** Personal gift bags with themed keepsakes.
+- **Customized Welcome:** Curated gift bags with personalized event keepsakes.
 - **Eco-friendly Elements:** Digital invites and locally sourced catering options.
 `;
 }
 
 /**
- * Call Google Generative AI (Gemini / Gemma) with the user prompt.
+ * Call Google Generative AI (Gemini / Gemma) with a fast timeout.
  */
 async function callAI(eventType, date, budget, apiKey) {
-  const prompt = `You are an expert event planner. Create a comprehensive, concise, actionable plan for a ${eventType} ${
+  const prompt = `You are an expert event planner. Create a concise, actionable plan for a ${eventType} ${
     date ? `on date ${date}` : ""
   } with a total budget of $${budget}.
 Include:
@@ -63,34 +63,37 @@ Include:
 3. Recommended vendor categories & priorities
 4. 3-4 creative ideas to make this event memorable and unique.
 
-Format the response in clean, beautiful Markdown with headers and bullet points.`;
+Format in clean Markdown with headers and bullet points.`;
 
-  const models = ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"];
+  const model = "gemini-2.5-flash-lite";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      });
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-      if (res.ok) {
-        const data = await res.json();
-        const candidate = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (candidate) {
-          return candidate.trim();
-        }
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      const candidate = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (candidate) {
+        return candidate.trim();
       }
-    } catch (e) {
-      console.warn(`Attempt with model ${model} failed:`, e);
     }
+  } catch (e) {
+    console.warn("AI generation error or timeout:", e.message || e);
   }
 
-  // If external call failed or had no response, return our structured plan
+  // Fast reliable fallback
   return generateFallbackPlan(eventType, date, budget);
 }
 
