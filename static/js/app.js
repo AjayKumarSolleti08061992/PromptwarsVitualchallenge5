@@ -1,7 +1,7 @@
 /**
  * script.js – Client-side Controller for Google Cloud Summit Schedule & AI Planner
  * Features: Dynamic Schedule Loading, Real-time Search & Category Filtering,
- * Accessible Form Submissions, and AI-Powered Event Generation.
+ * Session Selection for Custom Tracks, Accessible Submissions, and AI Generation.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const outputSection = document.getElementById("outputSection");
     const planOutput = document.getElementById("planOutput");
     const formEventDate = document.getElementById("formEventDate");
+    const selectedBadge = document.getElementById("selectedSessionsBadge");
 
     // Set default date to today or upcoming
     if (formEventDate && !formEventDate.value) {
@@ -22,6 +23,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let eventsData = [];
+    const selectedEventIds = new Set();
+
+    /**
+     * Update the visual badge showing selected sessions
+     */
+    function updateSelectedBadge() {
+        if (!selectedBadge) return;
+        const count = selectedEventIds.size;
+        if (count > 0) {
+            selectedBadge.textContent = `🎯 ${count} Session${count > 1 ? "s" : ""} Selected for Itinerary`;
+            selectedBadge.classList.remove("hidden");
+        } else {
+            selectedBadge.textContent = "📋 All Sessions Included in Plan (or select individual sessions above)";
+            selectedBadge.classList.remove("hidden");
+        }
+    }
 
     /**
      * Fetch schedule from backend API
@@ -33,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             eventsData = await res.json();
             renderSchedule(eventsData);
+            updateSelectedBadge();
         } catch (err) {
             console.error("Failed to fetch schedule:", err);
             scheduleContainer.innerHTML = `
@@ -58,44 +76,71 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         events.forEach((event) => {
-            const card = document.createElement("article");
+            const card = document.createElement("div");
             card.className = `event-card ${event.type === "break" ? "break-type" : ""}`;
-            card.setAttribute("aria-labelledby", `event-title-${event.id}`);
 
-            // Category Badge
+            // Category Class & Badge
+            const catClass = event.category ? `cat-${event.category}` : "";
             let badgeHTML = "";
             if (event.category_name && event.type !== "break") {
-                const catClass = event.category ? `cat-${event.category}` : "";
-                badgeHTML = `<span class="event-category-badge ${catClass}">${escapeHtml(event.category_name)}</span>`;
+                badgeHTML = `<div class="event-category-badge ${catClass}">${escapeHtml(event.category_name)}</div>`;
             }
 
-            // Speakers
+            // Speakers HTML
             let speakersHTML = "";
             if (event.speakers && event.speakers.length > 0) {
-                const speakers = event.speakers.map((s) => {
-                    const initials = `${s.first_name?.[0] || ""}${s.last_name?.[0] || ""}`;
-                    const name = `${s.first_name || ""} ${s.last_name || ""}`.trim();
+                const speakersList = event.speakers.map((speaker) => {
+                    const initials = `${speaker.first_name?.[0] || ""}${speaker.last_name?.[0] || ""}`;
+                    const fullName = `${speaker.first_name || ""} ${speaker.last_name || ""}`.trim();
                     return `
                         <div class="speaker">
-                            <span class="speaker-avatar" aria-hidden="true">${escapeHtml(initials)}</span>
-                            <span class="speaker-info">
-                                <a href="${escapeHtml(s.linkedin || "#")}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile of ${escapeHtml(name)}">
-                                    ${escapeHtml(name)}
+                            <div class="speaker-avatar" aria-hidden="true">${escapeHtml(initials)}</div>
+                            <div class="speaker-info">
+                                <a href="${escapeHtml(speaker.linkedin || "#")}" target="_blank" rel="noopener noreferrer">
+                                    ${escapeHtml(fullName)}
                                 </a>
-                            </span>
+                            </div>
                         </div>
                     `;
                 }).join("");
-                speakersHTML = `<div class="event-speakers">${speakers}</div>`;
+                speakersHTML = `<div class="event-speakers">${speakersList}</div>`;
+            }
+
+            // Checkbox for selection (talks only)
+            let selectHTML = "";
+            if (event.type !== "break") {
+                const isChecked = selectedEventIds.has(event.id) ? "checked" : "";
+                selectHTML = `
+                    <label class="session-select-label">
+                        <input type="checkbox" class="session-checkbox" value="${event.id}" ${isChecked} />
+                        <span>Add to Custom Track</span>
+                    </label>
+                `;
             }
 
             card.innerHTML = `
-                <div class="event-time"><span aria-hidden="true">🕒</span> ${escapeHtml(event.time)}</div>
-                ${badgeHTML}
-                <h3 id="event-title-${event.id}" class="event-title">${escapeHtml(event.title)}</h3>
-                <p class="event-desc">${escapeHtml(event.description || "")}</p>
-                ${speakersHTML}
+                <div class="event-time">${escapeHtml(event.time)}</div>
+                <div class="event-content">
+                    ${badgeHTML}
+                    <h3 class="event-title">${escapeHtml(event.title)}</h3>
+                    <p class="event-desc">${escapeHtml(event.description || "")}</p>
+                    ${speakersHTML}
+                    ${selectHTML}
+                </div>
             `;
+
+            // Checkbox event listener
+            const checkbox = card.querySelector(".session-checkbox");
+            if (checkbox) {
+                checkbox.addEventListener("change", (e) => {
+                    if (e.target.checked) {
+                        selectedEventIds.add(event.id);
+                    } else {
+                        selectedEventIds.delete(event.id);
+                    }
+                    updateSelectedBadge();
+                });
+            }
 
             scheduleContainer.appendChild(card);
         });
@@ -114,13 +159,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 return category === "all" && query === "";
             }
 
-            const matchCat = category === "all" || String(event.category) === category;
+            const matchCategory = category === "all" || String(event.category) === category;
             const matchTitle = (event.title || "").toLowerCase().includes(query);
-            const matchSpeaker = (event.speakers || []).some((s) =>
-                `${s.first_name} ${s.last_name}`.toLowerCase().includes(query)
-            );
+            const matchSpeaker = (event.speakers || []).some((speaker) => {
+                const fullName = `${speaker.first_name || ""} ${speaker.last_name || ""}`.toLowerCase();
+                return fullName.includes(query);
+            });
 
-            return matchCat && (matchTitle || matchSpeaker);
+            return matchCategory && (matchTitle || matchSpeaker);
         });
 
         renderSchedule(filtered);
@@ -142,13 +188,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const budget = Number(document.getElementById("budget")?.value || 0);
             const attendees = Number(document.getElementById("attendees")?.value || 0);
 
+            // Collect selected event IDs
+            const eventIds = Array.from(selectedEventIds);
+
             if (generateBtn) {
                 generateBtn.disabled = true;
                 generateBtn.innerHTML = `<span>⏳ Generating AI Plan...</span>`;
             }
 
             try {
-                // Try /api/generate_plan first, fallback to /generate
                 let planText = "";
                 const response = await fetch("/api/generate_plan", {
                     method: "POST",
@@ -158,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         event_date: date,
                         budget: budget,
                         attendees: attendees,
+                        event_ids: eventIds,
                     }),
                 });
 
@@ -173,6 +222,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             event_type: eventType,
                             event_date: date,
                             budget_usd: budget,
+                            attendees: attendees,
+                            event_ids: eventIds,
                         }),
                     });
                     if (altRes.ok) {

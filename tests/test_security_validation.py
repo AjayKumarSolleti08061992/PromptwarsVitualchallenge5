@@ -31,6 +31,24 @@ def test_reject_negative_budget(client):
     assert "error" in data
 
 
+def test_reject_invalid_string_budget(client):
+    """Verify API rejects non-numeric budget values."""
+    payload = {"budget": "invalid_amount"}
+    response = client.post("/api/generate_plan", json=payload)
+    assert response.status_code == 400
+    data = response.get_json()
+    assert "error" in data
+
+
+def test_reject_negative_attendees(client):
+    """Verify API rejects negative attendees."""
+    payload = {"attendees": -10}
+    response = client.post("/api/generate_plan", json=payload)
+    assert response.status_code == 400
+    data = response.get_json()
+    assert "error" in data
+
+
 def test_reject_excessive_budget(client):
     """Verify API rejects unrealistically huge budget amounts."""
     payload = {"budget": 10**12}
@@ -47,15 +65,21 @@ def test_reject_invalid_attendee_type(client):
     assert response.status_code == 400
 
 
+def test_generate_endpoint_validation_failure(client):
+    """Verify /generate also rejects invalid inputs."""
+    payload = {"budget_usd": -100}
+    response = client.post("/generate", json=payload)
+    assert response.status_code == 400
+
+
 def test_command_injection_attempt_neutralized(client):
-    """Verify malicious input strings with command injection characters are handled safely."""
+    """Verify malicious input strings are handled safely."""
     payload = {
         "event_type": "; cat /etc/passwd; rm -rf /; calc.exe",
         "budget_usd": 1000,
         "event_date": "2026-11-20 && whoami",
     }
     response = client.post("/generate", json=payload)
-    # The endpoint should handle it safely without executing shell commands
     assert response.status_code == 200
     data = response.get_json()
     assert "plan" in data

@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Google Cloud Technologies Summit 2026 & AI Planner</title>
-    <meta name="description" content="Explore the schedule for Google Cloud Technologies Summit 2026 and craft custom event itineraries with budget breakdowns using Google Gemini & Gemma AI." />
+    <title>Google Cloud Technologies Summit 2026 &amp; AI Planner</title>
+    <meta name="description" content="Explore the schedule for Google Cloud Technologies Summit 2026 and craft custom event itineraries with budget breakdowns using Google Gemini &amp; Gemma AI." />
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,12 +17,14 @@
 
     <!-- Header / Hero Section -->
     <header class="hero" role="banner">
-        <h1>Google Cloud Technologies Summit 2026</h1>
-        <p class="subtitle">An immersive 1-day technical conference showcasing Google Kubernetes Engine, Serverless Cloud Run, BigQuery, and Generative AI.</p>
-        <div class="event-details" aria-label="Conference logistics">
-            <span class="detail-item"><span aria-hidden="true">📅</span> <span id="event-date">October 25, 2026</span></span>
-            <span class="detail-item"><span aria-hidden="true">📍</span> <span id="event-location">Google Event Center, Mountain View, CA</span></span>
-            <span class="detail-item"><span aria-hidden="true">⚡</span> <span>2 Core Tracks: Infra &amp; AI</span></span>
+        <div class="hero-content">
+            <h1 class="gradient-text">Google Cloud Technologies Summit 2026</h1>
+            <p class="subtitle">An immersive 1-day technical conference showcasing Google Kubernetes Engine, Serverless Cloud Run, BigQuery, and Generative AI.</p>
+            <div class="event-details" aria-label="Conference logistics">
+                <span class="detail-item"><span aria-hidden="true">📅</span> <span id="event-date">October 25, 2026</span></span>
+                <span class="detail-item"><span aria-hidden="true">📍</span> <span id="event-location">Google Event Center, Mountain View, CA</span></span>
+                <span class="detail-item"><span aria-hidden="true">⚡</span> <span>2 Core Tracks: Infra &amp; AI</span></span>
+            </div>
         </div>
     </header>
 
@@ -47,7 +49,7 @@
         </section>
 
         <!-- Dynamic Schedule Grid -->
-        <section aria-labelledby="schedule-heading">
+        <section class="schedule-section" aria-labelledby="schedule-heading">
             <h2 id="schedule-heading" class="section-title">
                 <span aria-hidden="true">📋</span> Conference Agenda &amp; Timetable
             </h2>
@@ -64,9 +66,12 @@
             <h2 id="planner-heading" class="section-title">
                 <span aria-hidden="true">✨</span> AI Event Itinerary &amp; Budget Planner
             </h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">
                 Craft an actionable conference track, budget allocation, and timing plan powered by Google Generative AI (Gemini &amp; Gemma).
             </p>
+            <div id="selectedSessionsBadge" class="selected-sessions-badge hidden" aria-live="polite">
+                📋 All Sessions Included in Plan
+            </div>
             <form id="planForm">
                 <div class="form-grid">
                     <div>

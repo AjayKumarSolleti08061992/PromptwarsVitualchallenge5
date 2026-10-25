@@ -35,7 +35,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "1",
         "category_name": "Infrastructure & Compute",
-        "description": "Learn how to autoscale your microservices efficiently using GKE.",
+        "description": (
+            "Learn how to autoscale your microservices "
+            "efficiently using GKE."
+        ),
         "time": "09:00 - 09:45",
         "type": "talk",
     },
@@ -51,7 +54,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "1",
         "category_name": "Infrastructure & Compute",
-        "description": "Deploy highly scalable containerized applications on fully managed serverless platforms.",
+        "description": (
+            "Deploy highly scalable containerized applications "
+            "on fully managed serverless platforms."
+        ),
         "time": "10:00 - 10:45",
         "type": "talk",
     },
@@ -67,7 +73,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "2",
         "category_name": "Data & AI",
-        "description": "A comprehensive guide to building, deploying, and scaling machine learning models with Vertex AI.",
+        "description": (
+            "A comprehensive guide to building, deploying, "
+            "and scaling machine learning models with Vertex AI."
+        ),
         "time": "11:00 - 11:45",
         "type": "talk",
     },
@@ -88,7 +97,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "2",
         "category_name": "Data & AI",
-        "description": "Best practices for data modeling and querying petabytes of data using BigQuery.",
+        "description": (
+            "Best practices for data modeling and querying "
+            "petabytes of data using BigQuery."
+        ),
         "time": "12:00 - 12:45",
         "type": "talk",
     },
@@ -98,7 +110,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         "speakers": [],
         "category": "",
         "category_name": "Break",
-        "description": "Networking lunch in the main hall. Enjoy a 60-minute break.",
+        "description": (
+            "Networking lunch in the main hall. "
+            "Enjoy a 60-minute break."
+        ),
         "time": "12:45 - 13:45",
         "type": "break",
     },
@@ -114,7 +129,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "1",
         "category_name": "Infrastructure & Compute",
-        "description": "Strategies for modernizing existing infrastructure using Google Cloud Anthos across multi-cloud environments.",
+        "description": (
+            "Strategies for modernizing existing infrastructure "
+            "using Google Cloud Anthos across multi-cloud environments."
+        ),
         "time": "14:00 - 14:45",
         "type": "talk",
     },
@@ -130,7 +148,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "2",
         "category_name": "Data & AI",
-        "description": "Building unified stream and batch data processing pipelines with Cloud Dataflow.",
+        "description": (
+            "Building unified stream and batch data processing "
+            "pipelines with Cloud Dataflow."
+        ),
         "time": "15:00 - 15:45",
         "type": "talk",
     },
@@ -151,7 +172,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "1",
         "category_name": "Infrastructure & Compute",
-        "description": "Deep dive into IAM, VPC security, and zero-trust security models on Google Cloud.",
+        "description": (
+            "Deep dive into IAM, VPC security, and zero-trust "
+            "security models on Google Cloud."
+        ),
         "time": "16:00 - 16:45",
         "type": "talk",
     },
@@ -167,7 +191,10 @@ EVENTS_DATA: List[Dict[str, Any]] = [
         ],
         "category": "2",
         "category_name": "Data & AI",
-        "description": "Harnessing the power of generative AI and prompt engineering directly on Google Cloud.",
+        "description": (
+            "Harnessing the power of generative AI and prompt "
+            "engineering directly on Google Cloud."
+        ),
         "time": "17:00 - 17:45",
         "type": "talk",
     },
@@ -229,7 +256,7 @@ def schedule() -> Response:
 def validate_plan_payload(
     data: Dict[str, Any]
 ) -> Tuple[bool, Optional[str]]:
-    """Validate user inputs to prevent security injection and resource exhaustion.
+    """Validate user inputs to prevent security injection.
 
     Args:
         data: The incoming dictionary payload.
@@ -260,7 +287,7 @@ def validate_plan_payload(
 
 @app.route("/api/generate_plan", methods=["POST"])
 def api_generate_plan() -> Union[Response, Tuple[Response, int]]:
-    """Generate a conference itinerary and budget plan based on selected sessions.
+    """Generate a conference itinerary and budget plan based on sessions.
 
     Expected JSON payload:
         {
@@ -284,31 +311,45 @@ def api_generate_plan() -> Union[Response, Tuple[Response, int]]:
     # Filter events matching selected IDs or default to all events
     if selected_ids and isinstance(selected_ids, list):
         selected = [e for e in EVENTS_DATA if e["id"] in selected_ids]
+        if not selected:
+            selected = EVENTS_DATA
     else:
         selected = EVENTS_DATA
 
+    conf_name = CONFERENCE_INFO["name"]
+    conf_date = CONFERENCE_INFO["date"]
+    conf_loc = CONFERENCE_INFO["location"]
+
     plan_lines: List[str] = [
-        f"# 📅 Itinerary: {CONFERENCE_INFO['name']}",
-        f"**Date:** {CONFERENCE_INFO['date']} | **Location:** {CONFERENCE_INFO['location']}",
+        f"# 📅 Itinerary: {conf_name}",
+        f"**Date:** {conf_date} | **Location:** {conf_loc}",
         "",
         "### ⏱️ Scheduled Sessions & Keynotes",
     ]
 
     total_time = 0.0
     for ev in selected:
-        plan_lines.append(f"- **{ev['time']}**: {ev['title']} ({ev['category_name'] or ev['type'].title()})")
-        try:
+        cat_desc = ev["category_name"] or ev["type"].title()
+        plan_lines.append(f"- **{ev['time']}**: {ev['title']} ({cat_desc})")
+        if " - " in ev.get("time", ""):
             start_str, end_str = ev["time"].split(" - ")
-            h1, m1 = map(int, start_str.split(":"))
-            h2, m2 = map(int, end_str.split(":"))
-            total_time += (h2 - h1) + (m2 - m1) / 60.0
-        except Exception:
-            pass
+            try:
+                h1, m1 = map(int, start_str.split(":"))
+                h2, m2 = map(int, end_str.split(":"))
+                total_time += (h2 - h1) + (m2 - m1) / 60.0
+            except ValueError:
+                total_time += 0.75
+        else:
+            total_time += 0.75
 
     plan_lines.append("")
     plan_lines.append("### 💡 Recommended Preparation & Networking")
-    plan_lines.append("- Arrive 15 minutes before the first talk for badge collection.")
-    plan_lines.append("- Explore the interactive Vertex AI and GKE developer booths in the main hall.")
+    plan_lines.append(
+        "- Arrive 15 minutes before the first talk for badge collection."
+    )
+    plan_lines.append(
+        "- Explore interactive Vertex AI and GKE developer booths."
+    )
 
     summary: Dict[str, Any] = {
         "total_events": len(selected),
@@ -316,15 +357,16 @@ def api_generate_plan() -> Union[Response, Tuple[Response, int]]:
     }
 
     if budget is not None:
-        try:
-            b_float = float(budget)
-            per_event = round(b_float / max(len(selected), 1), 2)
-            summary["budget_suggestion"] = f"Allocate ~${per_event:.2f} per session/track."
-        except Exception:
-            pass
+        b_float = float(budget)
+        per_event = round(b_float / max(len(selected), 1), 2)
+        summary["budget_suggestion"] = (
+            f"Allocate ~${per_event:.2f} per session/track."
+        )
 
     if attendees is not None:
-        summary["venue_hint"] = f"Recommended room capacity: {attendees} participants."
+        summary["venue_hint"] = (
+            f"Recommended room capacity: {attendees} participants."
+        )
 
     return jsonify({"plan": "\n".join(plan_lines), "summary": summary})
 
@@ -346,7 +388,9 @@ def generate() -> Union[Response, Tuple[Response, int]]:
 
     event_type = data.get("event_type", data.get("type", "Conference"))
     budget = float(data.get("budget_usd", data.get("budget", 5000)) or 5000)
-    event_date = data.get("event_date", data.get("date", CONFERENCE_INFO["date"]))
+    event_date = data.get(
+        "event_date", data.get("date", CONFERENCE_INFO["date"])
+    )
 
     plan = (
         f"# 🎉 Event Plan: {event_type.upper()}\n"
@@ -365,7 +409,7 @@ def generate() -> Union[Response, Tuple[Response, int]]:
     return jsonify({"plan": plan})
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     is_debug = os.getenv("FLASK_DEBUG", "0") == "1"
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=is_debug)

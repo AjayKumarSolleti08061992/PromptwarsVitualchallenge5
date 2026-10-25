@@ -14,7 +14,7 @@ def build_prompt(data: Dict[str, Any]) -> str:
     """Create the Gemma prompt from the incoming request JSON.
 
     Args:
-        data: A dictionary containing event_type, budget_usd, and event_date.
+        data: Dictionary containing event_type, budget_usd, and event_date.
 
     Returns:
         A formatted prompt string for text generation.
@@ -55,7 +55,7 @@ def handler(request: Any) -> Dict[str, Any]:
         data = request.get_json(silent=True) or {}
         prompt = build_prompt(data)
 
-        # Path to Gemma executable and model directory – can be overridden via env vars.
+        # Path to Gemma executable and model directory
         gemma_exec = os.getenv("GEMMA_EXEC", "gemma")
         model_dir = os.getenv("MODEL_DIR", "models/gemma-2b")
 
@@ -72,11 +72,13 @@ def handler(request: Any) -> Dict[str, Any]:
             )
             plan = result.stdout.strip()
         except (FileNotFoundError, subprocess.SubprocessError):
+            plan_type = data.get("event_type", "Event")
+            budget_val = data.get("budget_usd", 0)
             plan = (
-                f"# Event Plan: {data.get('event_type', 'Event')}\n\n"
+                f"# Event Plan: {plan_type}\n\n"
                 "- **Timeline:** 4-week preparation plan.\n"
-                f"- **Budget:** Allocated from ${data.get('budget_usd', 0)}.\n"
-                "- **Milestones:** Venue booking, catering confirmation, event day execution."
+                f"- **Budget:** Allocated from ${budget_val}.\n"
+                "- **Milestones:** Venue, catering, event execution."
             )
 
         return {

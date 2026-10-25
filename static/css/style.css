@@ -57,13 +57,20 @@ body {
 /* Hero Header */
 header.hero {
   text-align: center;
-  padding: 3.5rem 1.5rem 2rem;
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, transparent 100%);
+  padding: 3.5rem 1.5rem 2.5rem;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, transparent 100%);
   border-bottom: 1px solid var(--card-border);
+  position: relative;
 }
 
+.hero-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.gradient-text,
 .hero h1 {
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: clamp(2rem, 4.5vw, 3.4rem);
   font-weight: 800;
   background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
   -webkit-background-clip: text;
@@ -74,13 +81,13 @@ header.hero {
 .hero .subtitle {
   font-size: 1.15rem;
   color: var(--text-muted);
-  max-width: 800px;
+  max-width: 760px;
   margin: 0 auto 1.5rem;
 }
 
 .event-details {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -111,12 +118,12 @@ header.hero {
 /* Controls (Search & Filter) */
 .controls-section {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
   align-items: center;
   background: var(--card-bg);
   backdrop-filter: blur(var(--card-blur));
-  padding: 1.25rem;
+  padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid var(--card-border);
 }
@@ -154,6 +161,11 @@ input:focus-visible, select:focus-visible {
 }
 
 /* Sections & Cards */
+.schedule-section {
+  display: flex;
+  flex-direction: column;
+}
+
 .section-title {
   font-size: 1.6rem;
   font-weight: 700;
@@ -178,12 +190,13 @@ input:focus-visible, select:focus-visible {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .event-card:hover {
   transform: translateY(-3px);
   border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
 .event-card.break-type {
@@ -198,6 +211,12 @@ input:focus-visible, select:focus-visible {
   margin-bottom: 0.5rem;
 }
 
+.event-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
 .event-category-badge {
   display: inline-block;
   padding: 0.25rem 0.65rem;
@@ -207,6 +226,7 @@ input:focus-visible, select:focus-visible {
   margin-bottom: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  width: fit-content;
 }
 
 .event-category-badge.cat-1 {
@@ -274,6 +294,30 @@ input:focus-visible, select:focus-visible {
   color: #ffffff;
 }
 
+.session-select-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.session-select-label:hover {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.session-select-label input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+
 /* Planner Card */
 .planner-card {
   background: var(--card-bg);
@@ -281,6 +325,18 @@ input:focus-visible, select:focus-visible {
   border: 1px solid var(--card-border);
   border-radius: 1rem;
   padding: 2rem;
+}
+
+.selected-sessions-badge {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  color: #38bdf8;
+  margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .form-grid {
