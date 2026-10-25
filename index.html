@@ -4,46 +4,113 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GenAI Event Planner</title>
-    <meta name="description" content="AI‑powered assistant to plan weddings, birthdays, and community events with budgets, timelines, vendor checklists, and personalized ideas." />
+    <title>Google Cloud Technologies Summit 2026 & AI Planner</title>
+    <meta name="description" content="Explore the schedule for Google Cloud Technologies Summit 2026 and craft custom event itineraries with budget breakdowns using Google Gemini & Gemma AI." />
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
-    <!-- Google Font for premium look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-    <header class="hero">
-        <h1>✨ GenAI Event Planner</h1>
-        <p>Plan your wedding, birthday, or community gathering with budgets, timelines, vendor checklists, and AI‑crafted ideas.</p>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Header / Hero Section -->
+    <header class="hero" role="banner">
+        <h1>Google Cloud Technologies Summit 2026</h1>
+        <p class="subtitle">An immersive 1-day technical conference showcasing Google Kubernetes Engine, Serverless Cloud Run, BigQuery, and Generative AI.</p>
+        <div class="event-details" aria-label="Conference logistics">
+            <span class="detail-item"><span aria-hidden="true">📅</span> <span id="event-date">October 25, 2026</span></span>
+            <span class="detail-item"><span aria-hidden="true">📍</span> <span id="event-location">Google Event Center, Mountain View, CA</span></span>
+            <span class="detail-item"><span aria-hidden="true">⚡</span> <span>2 Core Tracks: Infra &amp; AI</span></span>
+        </div>
     </header>
-    <main class="container">
-        <section class="card">
-            <h2>Event Details</h2>
-            <form id="planForm">
-                <label for="eventType">Event Type</label>
-                <select id="eventType" required>
-                    <option value="wedding">Wedding</option>
-                    <option value="birthday">Birthday</option>
-                    <option value="community">Community Event</option>
+
+    <!-- Main Content Container -->
+    <main id="main-content" class="container" role="main">
+        
+        <!-- Controls: Search & Category Filter -->
+        <section class="controls-section" aria-labelledby="filter-heading">
+            <h2 id="filter-heading" class="visually-hidden" style="position: absolute; width: 1px; height: 1px; overflow: hidden;">Filter and Search Sessions</h2>
+            <div class="search-box">
+                <label for="searchInput">Search Sessions or Speakers</label>
+                <input type="search" id="searchInput" placeholder="Type to filter talks by title, topic, or speaker name..." aria-label="Search conference sessions by title or speaker" />
+            </div>
+            <div class="filter-box">
+                <label for="categoryFilter">Track Category</label>
+                <select id="categoryFilter" aria-label="Filter schedule by track category">
+                    <option value="all">All Categories</option>
+                    <option value="1">Infrastructure &amp; Compute</option>
+                    <option value="2">Data &amp; AI</option>
                 </select>
+            </div>
+        </section>
 
-                <label for="eventDate">Date</label>
-                <input type="date" id="eventDate" required />
+        <!-- Dynamic Schedule Grid -->
+        <section aria-labelledby="schedule-heading">
+            <h2 id="schedule-heading" class="section-title">
+                <span aria-hidden="true">📋</span> Conference Agenda &amp; Timetable
+            </h2>
+            <div id="scheduleContainer" class="schedule-container" aria-live="polite">
+                <!-- Session cards populated dynamically via script.js -->
+            </div>
+            <div id="noResults" class="no-results hidden" role="status">
+                <p>No conference talks found matching your filter criteria.</p>
+            </div>
+        </section>
 
-                <label for="budget">Budget (USD)</label>
-                <input type="number" id="budget" min="0" placeholder="e.g., 15000" required />
-
-                <button type="submit" class="primary-btn">Generate Plan</button>
+        <!-- GenAI Conference & Event Itinerary Planner -->
+        <section class="planner-card" aria-labelledby="planner-heading">
+            <h2 id="planner-heading" class="section-title">
+                <span aria-hidden="true">✨</span> AI Event Itinerary &amp; Budget Planner
+            </h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                Craft an actionable conference track, budget allocation, and timing plan powered by Google Generative AI (Gemini &amp; Gemma).
+            </p>
+            <form id="planForm">
+                <div class="form-grid">
+                    <div>
+                        <label for="eventType">Event / Track Type</label>
+                        <select id="eventType" required>
+                            <option value="Cloud Technical Summit">Cloud Technical Summit</option>
+                            <option value="Developer Hackathon">Developer Hackathon</option>
+                            <option value="AI Workshop &amp; Bootcamp">AI Workshop &amp; Bootcamp</option>
+                            <option value="Community Meetup">Community Meetup</option>
+                            <option value="Wedding">Wedding</option>
+                            <option value="Birthday">Birthday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="formEventDate">Event Date</label>
+                        <input type="date" id="formEventDate" required />
+                    </div>
+                    <div>
+                        <label for="budget">Total Budget (USD)</label>
+                        <input type="number" id="budget" min="0" max="100000000" placeholder="e.g. 15000" required />
+                    </div>
+                    <div>
+                        <label for="attendees">Expected Attendees</label>
+                        <input type="number" id="attendees" min="1" max="100000" placeholder="e.g. 150" />
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn" id="generateBtn">
+                    <span>✨ Generate AI Itinerary &amp; Budget</span>
+                </button>
             </form>
+
+            <!-- Output Section -->
+            <div id="outputSection" class="hidden" aria-live="polite">
+                <h3 style="margin-top: 1.5rem; color: #38bdf8;">Generated Itinerary &amp; Plan</h3>
+                <div id="planOutput" class="output-container"></div>
+            </div>
         </section>
 
-        <section class="card" id="outputSection" style="display:none;">
-            <h2>AI‑Generated Plan</h2>
-            <div id="planOutput" class="output"></div>
-        </section>
     </main>
-    <footer>
-        <p>Powered by <a href="https://github.com/google/gemma.cpp" target="_blank" rel="noopener">Gemma</a> (open‑source) • © 2026 EventPlanner</p>
+
+    <footer role="contentinfo">
+        <p>&copy; 2026 Google Cloud Technologies Summit • Powered by <a href="https://github.com/google/gemma.cpp" target="_blank" rel="noopener">Gemma</a> &amp; Google Gemini AI</p>
     </footer>
+
     <script src="script.js"></script>
 </body>
 </html>

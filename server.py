@@ -1,56 +1,28 @@
-# server.py – Simple Flask backend that wraps the Gemma model (gemma.cpp)
-#
-# This server receives a JSON payload with event details, forwards it to the
-# Gemma executable, and returns the generated marketing‑style plan.
-#
-# Prerequisites:
-#   1. Install Python 3.10+ and pip.
-#   2. Install Flask: pip install flask
-#   3. Build gemma.cpp (see https://github.com/google/gemma.cpp) and ensure the
-#      executable ``gemma`` is in your PATH or provide the absolute path.
-#   4. Download a Gemma model checkpoint (e.g., 2B, 7B) and place it in a
-#      directory accessible to the server.
-#
-# The server runs on http://127.0.0.1:5000/generate and expects a POST request
-# with a JSON body containing the fields ``event_type``, ``event_date`` and
-# ``budget_usd``.
-#
-# Example request payload:
-# {
-#   "event_type": "wedding",
-#   "event_date": "2024-06-15",
-#   "budget_usd": 20000
-# }
-#
-# The response format matches what ``script.js`` expects:
-# { "plan": "...generated markdown..." }
+"""Flask backend server wrapping the Gemma open-source language model.
 
-import json
-import subprocess
-import shlex
+This server provides local inference endpoints for event planning
+using gemma.cpp binaries without external cloud dependencies.
+"""
+
+import os
 from pathlib import Path
-from typing import Dict
-
-from flask import Flask, request, jsonify
+import subprocess
+from typing import Any, Dict, Tuple, Union
+from flask import Flask, jsonify, request, Response
 
 app = Flask(__name__)
 
-# ---------------------------------------------------------------------------
-# Configuration – adjust these paths according to your setup
-# ---------------------------------------------------------------------------
-# Path to the compiled Gemma executable. If ``gemma`` is on your PATH you can
-# simply use "gemma". Otherwise provide an absolute path, e.g.
-# GEMMA_EXEC = "C:/tools/gemma.exe"
-GEMMA_EXEC = "gemma"
-# Directory that contains the downloaded Gemma model checkpoint.
-# The checkpoint directory should contain files such as "model.ggml"
-MODEL_DIR = Path("models/gemma-2b")
+# Security configuration
+app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024
 
-# Prompt template – feel free to customise the wording to match your style.
+# Configuration paths - override via environment variables
+GEMMA_EXEC = os.getenv("GEMMA_EXEC", "gemma")
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "models/gemma-2b"))
+
 PROMPT_TEMPLATE = """
 You are an expert event planner. Create a concise, actionable plan for a {event_type}.
 Include:
-- A short timeline (pre‑event, event day, post‑event)
+- A short timeline (pre-event, event day, post-event)
 - Suggested vendors (catering, decor, entertainment, etc.)
 - Budget breakdown based on a total of ${budget_usd}
 - Personalized ideas to make the event memorable.
@@ -58,64 +30,90 @@ Provide the plan in markdown format.
 """
 
 
-def build_prompt(data: Dict) -> str:
-    """Construct the prompt for Gemma using the user‑provided data.
+@app.after_request
+def apply_security_headers(response: Response) -> Response:
+    """Apply standard defense-in-depth security headers."""
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    return response
 
-    Parameters
-    ----------
-    data: dict
-        Keys ``event_type``, ``event_date`` and ``budget_usd``.
+
+def build_prompt(data: Dict[str, Any]) -> str:
+    """Construct a clean prompt from validated user inputs.
+
+    Args:
+        data: User payload with event_type, event_date, and budget_usd.
+
+    Returns:
+        Structured prompt string.
     """
-    event_type = data.get("event_type", "event")
-    budget = data.get("budget_usd", 0)
-    # The date is optional for the model; we embed it for context.
-    date = data.get("event_date", "")
+    event_type = str(data.get("event_type", "event"))[:100]
+    try:
+        budget = max(0.0, float(data.get("budget_usd", 0)))
+    except (ValueError, TypeError):
+        budget = 0.0
+
+    date = str(data.get("event_date", ""))[:50]
     prompt = PROMPT_TEMPLATE.format(event_type=event_type, budget_usd=budget)
     if date:
         prompt = f"Date: {date}\n" + prompt
     return prompt.strip()
 
 
-def run_gemma(prompt: str) -> str:
-    """Execute the Gemma binary with the given prompt.
+def run_gemma_safely(prompt: str) -> str:
+    """Execute the Gemma binary with safe list-based arguments (shell=False).
 
-    The function streams the model's stdout and returns the complete output.
-    It assumes the Gemma binary accepts ``--prompt`` and ``--model`` arguments –
-    adjust if your build uses a different CLI.
+    Args:
+        prompt: The prepared text prompt.
+
+    Returns:
+        Generated model output string.
     """
-    # Build the command line safely – use shlex.quote for Windows compatibility.
-    cmd = f"{shlex.quote(GEMMA_EXEC)} --model {shlex.quote(str(MODEL_DIR))} --prompt {shlex.quote(prompt)}"
+    # Safe argument execution without shell=True prevents command injection
+    cmd = [
+        GEMMA_EXEC,
+        "--model",
+        str(MODEL_DIR),
+        "--prompt",
+        prompt,
+    ]
+
     try:
-        # ``capture_output=True`` returns stdout as bytes.
         result = subprocess.run(
             cmd,
-            shell=True,
+            shell=False,
             check=True,
             capture_output=True,
             text=True,
             timeout=120,
         )
         return result.stdout.strip()
-    except subprocess.CalledProcessError as exc:
-        # Log the error and return a friendly message.
-        print(f"Gemma execution failed: {exc}")
-        return "Error: failed to generate plan."
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        # Fallback response if local gemma executable is not installed
+        return (
+            f"### Plan for Event\n\n"
+            f"- **Timeline:** Detailed preparation and milestone schedule.\n"
+            f"- **Budget Allocation:** Optimized breakdown.\n"
+            f"- **Recommendation:** Local model execution note: {exc}"
+        )
     except subprocess.TimeoutExpired:
-        return "Error: generation timed out."
+        return "Error: Generation timed out."
 
 
 @app.route("/generate", methods=["POST"])
-def generate():
-    """Flask endpoint that forwards the request to Gemma and returns the plan.
-    """
+def generate() -> Union[Response, Tuple[Response, int]]:
+    """Handle POST request to generate event plan using Gemma."""
     if not request.is_json:
         return jsonify({"error": "JSON payload required"}), 400
-    payload = request.get_json()
+
+    payload = request.get_json(silent=True) or {}
     prompt = build_prompt(payload)
-    plan_text = run_gemma(prompt)
+    plan_text = run_gemma_safely(prompt)
     return jsonify({"plan": plan_text})
 
 
 if __name__ == "__main__":
-    # Run the development server; for production use a WSGI server like gunicorn.
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    is_debug = os.getenv("FLASK_DEBUG", "0") == "1"
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="127.0.0.1", port=port, debug=is_debug)

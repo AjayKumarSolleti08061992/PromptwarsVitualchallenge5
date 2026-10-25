@@ -13,6 +13,11 @@ api/.env
 .env.local
 .env.*.local
 
+# Pytest & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Cloudflare & Node
 node_modules/
 .wrangler/
